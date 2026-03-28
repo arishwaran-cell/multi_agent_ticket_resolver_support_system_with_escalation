@@ -1,81 +1,195 @@
-# Multi-Agent Ticket Resolver Support System with Escalation
+---
 
-AI Agents Assist is an intelligent IT ticket resolver that leverages Azure OpenAI, vector search, and agent-based automation to provide instant solutions to IT issues. If the AI cannot resolve an issue, it escalates the ticket to IT support via email.
+# 🚀 Multi-Agent Ticket Resolver Support System with Escalation
 
-## Features
+AI Agents Assist is an intelligent IT ticket resolution system powered by **local LLMs (Ollama)**, **FAISS-based vector search**, and **multi-agent orchestration (AutoGen)**. It provides instant solutions to IT issues and escalates unresolved tickets via email.
 
-- **Natural Language IT Support:** Users describe their IT issues in plain English.
-- **Automated Ticket Classification:** Classifies issues into categories (e.g., Password Reset, Network Issue).
-- **Knowledge Base Search:** Uses vector similarity search to find the most relevant solutions from a curated knowledge base.
-- **Escalation Workflow:** Unresolved issues are automatically escalated to IT support via email, with ticket creation.
-- **Streamlit UI:** User-friendly web interface for submitting issues and receiving solutions.
+---
 
-## Project Structure
+## ⚠️ Acknowledgements
 
-```
+This project is based on and inspired by the open-source repository:
+
+* Intelligent-It-Ticket-Resolver-Multiagent-Project by Sandesh Hase
+
+Licensed under the MIT License.
+
+### 🔧 Key Enhancements & Modifications
+
+* Replaced **Azure AI Search** with **FAISS (local vector search)**
+* Replaced **Azure OpenAI** with **Ollama (local LLM inference)**
+* Migrated UI from **Streamlit → Gradio**
+* Switched dependency management from **pip → uv**
+* Refactored agent orchestration and retrieval pipeline
+* Enabled **fully offline AI capability (except email)**
+
+---
+
+## ⚡ Key Highlights
+
+* 🧠 Fully local AI stack (no Azure dependency)
+* ⚡ Fast semantic search using FAISS
+* 🤖 Multi-agent collaboration (AutoGen)
+* 📧 Automated escalation via email
+* 🌐 Interactive Gradio UI with feedback loop
+
+---
+
+## ✨ Features
+
+* **Natural Language IT Support**
+* **Automated Ticket Classification**
+* **Semantic Knowledge Retrieval (FAISS + embeddings)**
+* **Escalation Workflow with ticket generation**
+* **User Feedback Loop (resolve / escalate)**
+
+---
+
+## 🏗️ Project Structure
+
+```bash
 .
-├── app.py                      
-├── group_chat.py               # Agent orchestration and group chat logic
+├── app.py                       # Gradio UI
+├── group_chat.py               # Agent orchestration
 ├── agents/
-│   ├── classifier_agent.py     # Ticket classification agent
-│   ├── knowledge_base_agent.py # Knowledge base retrieval agent
-│   └── notification_agnet.py   # Notification/escalation agent
+│   ├── classifier_agent.py
+│   ├── knowledge_base_agent.py
+│   └── notification_agent.py
 ├── tools/
-│   ├── knowledge_base_tool.py  # Vector search tool for knowledge base
-│   └── send_email.py           # Email escalation tool
+│   ├── knowledge_base_tool.py  # FAISS-based retrieval
+│   └── send_email.py           # Email escalation
 ├── utility/
-│   ├── llm_config.py           # LLM configuration (Azure OpenAI)
-│   └── prompt.py               # Prompts for agents
+│   ├── llm_config.py           # Ollama config
+│   └── prompt.py
 ├── data/
-│   └── knowledge_base.json     # IT solutions knowledge base
-├── create_and_upload_index.py  # Script to create Azure Search index and upload data
-├── .env                        # Environment variables (Azure/OpenAI/Search keys)
-└── README.md                   # Project documentation
+│   └── knowledge_base.json
+├── .env
+└── README.md
 ```
 
-## Setup Instructions
+---
 
-1. **Clone the repository**
+## ⚙️ Tech Stack
 
+* **LLM:** Ollama (`llama3:8b`)
+* **Framework:** AutoGen
+* **Vector Search:** FAISS
+* **Embeddings:** Sentence Transformers
+* **UI:** Gradio
 
-2. **Install dependencies**
+---
 
-   ```sh
-   uv sync
-   ```
+## 🛠️ Setup Instructions
 
-3. **Configure environment variables**
+### 1️⃣ Clone the repository
 
-   - Copy `.env` and fill in your Azure OpenAI and Azure Search credentials.
+```bash
+git clone <your-repo-url>
+cd <your-project-folder>
+```
 
-4. **Create and upload the Azure Search index**
+---
 
-   ```sh
-   python create_and_upload_index.py
-   ```
+### 2️⃣ Install dependencies
 
-5. **Run the Streamlit app**
+```bash
+uv sync
+```
 
-   ```sh
-   uv run app.py
-   ```
+---
 
-6. **Open your browser**
+### 3️⃣ Configure `.env`
 
-   - Visit `http://127.0.0.1:7860` to use AI Agents Assist.
+```env
+OLLAMA_BASE_URL=http://localhost:11434/v1
+OLLAMA_MODEL=llama3:8b
 
-## How It Works
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_app_password
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+```
 
-- **User submits an IT issue** via the web UI.
-- **Agents collaborate**: 
-  - The classifier agent determines the issue category.
-  - The knowledge base agent retrieves relevant solutions using vector search.
-  - If the solution is not helpful, the notification agent escalates the issue via email.
-- **Feedback loop**: Users can mark solutions as helpful or escalate if unresolved.
+---
 
-## Customization
+### 4️⃣ Start Ollama
 
-- **Knowledge Base**: Edit [`data/knowledge_base.json`](data/knowledge_base.json) to add or update IT solutions.
-- **Prompts**: Adjust agent behavior in [`utility/prompt.py`](utility/prompt.py).
-- **Email Settings**: Configure SMTP credentials in [`tools/send_email.py`](tools/send_email.py).
+```bash
+ollama serve
+ollama pull llama3:8b
+```
+
+---
+
+### 5️⃣ Run the app
+
+```bash
+uv run app.py
+```
+
+---
+
+### 6️⃣ Open browser
+
+```
+http://127.0.0.1:7860
+```
+
+---
+
+## 🔄 How It Works
+
+1. User submits IT issue
+2. Classifier Agent categorizes issue
+3. Knowledge Base Agent retrieves solutions using FAISS
+4. User provides feedback
+
+   * ✅ Resolved → Done
+   * ❌ Not resolved → Escalation
+5. Notification Agent sends email with ticket
+
+---
+
+## 🧠 Architecture Flow
+
+```
+User Input
+   ↓
+Classifier Agent
+   ↓
+Knowledge Base Agent
+   ↓
+FAISS (Local Vector Search)
+   ↓
+Solution OR Escalation
+   ↓
+Email Notification
+```
+
+---
+
+## 📧 Email Setup
+
+* Use Gmail App Password (not normal password)
+* Enable 2FA before generating it
+
+---
+
+## 🔧 Customization
+
+* Update knowledge base → `data/knowledge_base.json`
+* Modify prompts → `utility/prompt.py`
+* Change model → `.env`
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+It includes modifications based on prior MIT-licensed work.
+See the `LICENSE` file for full details.
+
+---
+
 
