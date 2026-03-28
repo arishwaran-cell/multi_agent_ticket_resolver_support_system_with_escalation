@@ -1,5 +1,7 @@
 import os
 import smtplib
+import datetime
+import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
@@ -11,7 +13,12 @@ SMTP_SERVER = os.getenv("SMTP_SERVER")
 SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 SENDER_EMAIL = os.getenv("EMAIL_USER")
 SENDER_PASSWORD = os.getenv("EMAIL_PASSWORD")
+ESCALATION_EMAIL = os.getenv("ESCALATION_EMAIL")
 
+def generate_ticket_id():
+    date_part = datetime.datetime.now().strftime("%Y%m%d")
+    unique_part = uuid.uuid4().hex[:6].upper()
+    return f"TKT-{date_part}-{unique_part}"
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
     try:
@@ -35,27 +42,31 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
 
 
 def escalate_ticket_with_email(issue: str) -> dict:
-    subject = "Escalation: Unresolved IT Issue"
+    ticket_id = generate_ticket_id()   # 🔥 ADD THIS
+
+    subject = f"[{ticket_id}] Escalation: Unresolved IT Issue"
 
     body = f"""
 Hello IT Support Team,
 
-The following issue reported by a user could not be resolved by the AI Assistant:
+Ticket ID: {ticket_id}
 
+Issue:
 "{issue}"
 
-Please investigate and take further action.
+Please investigate and resolve.
 
-Regards,  
-AI Notification Agent
+Regards,
+AI Support System
 """
 
     success = send_email(
-        to_email=SENDER_EMAIL,  # send to yourself or IT team
+        to_email=ESCALATION_EMAIL,
         subject=subject,
         body=body
     )
 
     return {
-        "content": "📧 Email sent to IT support." if success else "⚠️ Failed to send email."
+        "content": f"📧 Ticket {ticket_id} created and sent to IT support."
+        if success else "⚠️ Failed to send email."
     }

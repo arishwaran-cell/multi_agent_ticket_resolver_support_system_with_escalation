@@ -11,9 +11,8 @@ llm_config={
                     "model": os.getenv("OLLAMA_MODEL"),  # This should match your deployment name
                     "base_url": os.getenv("OLLAMA_BASE_URL"),
                     "api_type": "openai",
-                    "api_key": "ollama"
+                    "api_key": os.getenv("OLLAMA_API_KEY")
                 }
-            ]
+            ],
         }
-
 

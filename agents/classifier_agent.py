@@ -1,18 +1,22 @@
-import os
-from pathlib import Path
 from autogen import AssistantAgent
-
-from utility.prompt import classifier_prompt
 from utility.llm_config import llm_config
 
-from dotenv import load_dotenv
-load_dotenv()
 
 def get_classifier_agent():
 
-    agent_cls = AssistantAgent(
+    return AssistantAgent(
         name="ClassifierAgent",
-        llm_config=llm_config,
-        system_message = classifier_prompt
+        system_message=(
+            "You are a strict IT issue classifier.\n\n"
+
+            "RULES:\n"
+            "1. Return ONLY valid JSON.\n"
+            "2. Format MUST be:\n"
+            "{ \"ticket\": \"user issue\", \"category\": \"category name\" }\n"
+            "3. DO NOT ask questions.\n"
+            "4. DO NOT explain anything.\n"
+            "5. DO NOT add extra text.\n"
+            "6. DO NOT include TERMINATE.\n"
+        ),
+        llm_config=llm_config
     )
-    return agent_cls

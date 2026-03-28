@@ -1,199 +1,107 @@
 import gradio as gr
-from group_chat import user, manager, notification_agent
-import random
-import string
-import traceback
+import json
 
-# ---------------------------
-# Ticket generator
-# ---------------------------
-def generate_ticket_id(prefix="TKT", length=6):
-    suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
-    return f"{prefix}-{suffix}"
+from group_chat import manager, user
+from tools.send_email import escalate_ticket_with_email
 
 
-# ---------------------------
-# Core AI handler
-# ---------------------------
-def resolve_issue(user_input):
-    print("🔹 resolve_issue called")
+# =============================
+# 🧠 RUN AUTOGEN
+# =============================
 
-    if not user_input or not user_input.strip():
-        return "⚠️ Please describe your issue.", user_input, False
-
-    responses = []
-    original_receive = user.receive
-
+def run_autogen(user_input):
     try:
-        def receive_and_capture(*args, **kwargs):
-            if len(args) >= 2:
-                message = args[0]
-                if isinstance(message, dict):
-                    content = message.get("content", "")
-                    if content:
-                        responses.append(content)
-            return original_receive(*args, **kwargs)
-
-        user.receive = receive_and_capture
-
-        print("🔹 Starting agent chat...")
-        user.initiate_chat(recipient=manager, message=user_input)
-        print("🔹 Agent chat finished")
-
-    finally:
-        user.receive = original_receive
-
-    if responses:
-        return responses[-1], user_input, True
-    else:
-        return "⚠️ No response received from agents.", user_input, False
-
-
-# ---------------------------
-# Feedback handlers
-# ---------------------------
-def feedback_yes():
-    print("👍 User said YES")
-    return "🎉 Glad your issue is resolved!", False
-
-
-def feedback_no(user_input):
-    print("👎 User said NO")
-
-    ticket_id = generate_ticket_id()
-
-    notification_message = (
-        f"🚨 Unresolved IT Issue\n\n"
-        f"User reported: '{user_input}'\n"
-        f"📄 Ticket ID: {ticket_id}"
-    )
-
-    try:
-        reply = notification_agent.generate_reply(
-            messages=[{"role": "user", "content": notification_message}],
-            sender=user
+        result = user.initiate_chat(
+            recipient=manager,
+            message=user_input
         )
 
-        final_reply = reply.get("content") if isinstance(reply, dict) else str(reply)
+        chat_history = result.chat_history
+        final_answer = ""
 
-        return (
-            f"⚠️ Issue escalated.\n\n📄 Ticket: {ticket_id}\n\n📨 {final_reply}",
-            False
-        )
+        for msg in reversed(chat_history):
+            if msg.get("role") == "tool":
+                content = msg.get("content", "")
+
+                if "No matching solutions found." in content:
+                    final_answer = "❌ No solution found. You can escalate this issue."
+                else:
+                    lines = content.split("\n")
+                    solution_lines = [l for l in lines if l.startswith("Solution:")]
+
+                    if solution_lines:
+                        final_answer = solution_lines[0].replace("Solution:", "").strip()
+                    else:
+                        final_answer = content
+
+                break
+
+        return final_answer, gr.update(visible=True)
 
     except Exception as e:
-        error_details = traceback.format_exc()
-        print("❌ Escalation Error:\n", error_details)
-        return f"❌ Escalation failed:\n\n```\n{error_details}\n```", False
+        return f"❌ ERROR:\n{str(e)}", gr.update(visible=False)
 
 
-# ---------------------------
-# UI
-# ---------------------------
-with gr.Blocks(title="Multi-Agent Ticket Resolver Support System with Escalation") as demo:
+# =============================
+# 📧 ESCALATION
+# =============================
 
-    gr.Markdown("# 🤖 Multi-Agent Ticket Resolver Support System with Escalation")
-    gr.Markdown("## ⚡ Your AI Agents IT Support Assistant")
+def escalate_issue(issue):
+    result = escalate_ticket_with_email(issue)
+    return result["content"]
 
-    # State variables
-    state_user_input = gr.State("")
-    state_show_feedback = gr.State(False)
 
-    # Input
+# =============================
+# 🎨 UI
+# =============================
+
+with gr.Blocks() as demo:
+
+    gr.Markdown("# 🤖 AI IT Support System")
+    gr.Markdown("### ⚡ AutoGen + RAG + Email Escalation")
+
     user_input = gr.Textbox(
         label="Describe your IT issue",
         lines=5,
-        placeholder="Example: Outlook crashes when opening..."
+        placeholder="e.g., VPN not connecting"
     )
 
-    # Output
-    output = gr.Markdown()
+    resolve_btn = gr.Button("🚀 Resolve Issue")
 
-    # Button
-    resolve_btn = gr.Button("🚀 Resolve Now")
+    output = gr.Textbox(label="Solution", lines=8)
 
-    # Feedback row (IMPORTANT FIX)
-    feedback_row = gr.Row(visible=False)
-    with feedback_row:
-        yes_btn = gr.Button("✅ Yes")
-        no_btn = gr.Button("❌ No")
+    with gr.Row(visible=False) as feedback_row:
+        yes_btn = gr.Button("✅ Resolved")
+        no_btn = gr.Button("❌ Not Resolved")
 
-    # ---------------------------
-    # Resolve flow with loading + error tracing
-    # ---------------------------
-    def resolve_wrapper(text):
-        print("🚀 BUTTON CLICKED")
+    status = gr.Textbox(label="Status")
 
-        # Step 1: Show loading immediately
-        yield (
-            "⏳ Processing your request... please wait...",
-            text,
-            False,
-            gr.update(visible=False)
-        )
-
-        try:
-            print("🔹 Calling resolve_issue...")
-            result, saved_input, show_feedback = resolve_issue(text)
-
-            print("✅ Completed successfully")
-
-            # Step 2: Show result
-            yield (
-                result,
-                saved_input,
-                show_feedback,
-                gr.update(visible=show_feedback)
-            )
-
-        except Exception:
-            error_details = traceback.format_exc()
-            print("❌ FULL ERROR:\n", error_details)
-
-            # Step 3: Show full error in UI
-            yield (
-                f"❌ ERROR OCCURRED:\n\n```\n{error_details}\n```",
-                text,
-                False,
-                gr.update(visible=False)
-            )
+    # =============================
+    # 🔁 FLOW
+    # =============================
 
     resolve_btn.click(
-        fn=resolve_wrapper,
-        inputs=[user_input],
-        outputs=[output, state_user_input, state_show_feedback, feedback_row],
+        fn=run_autogen,
+        inputs=user_input,
+        outputs=[output, feedback_row],
         show_progress=True
     )
 
-    # ---------------------------
-    # YES feedback
-    # ---------------------------
-    def yes_wrapper():
-        result, show_feedback = feedback_yes()
-        return result, show_feedback, gr.update(visible=False)
-
     yes_btn.click(
-        fn=yes_wrapper,
-        inputs=[],
-        outputs=[output, state_show_feedback, feedback_row]
+        fn=lambda: "✅ Glad it worked!",
+        outputs=status
     )
-
-    # ---------------------------
-    # NO feedback
-    # ---------------------------
-    def no_wrapper(saved_input):
-        result, show_feedback = feedback_no(saved_input)
-        return result, show_feedback, gr.update(visible=False)
 
     no_btn.click(
-        fn=no_wrapper,
-        inputs=[state_user_input],
-        outputs=[output, state_show_feedback, feedback_row]
+        fn=escalate_issue,
+        inputs=user_input,
+        outputs=status
     )
 
 
-# ---------------------------
-# Run App
-# ---------------------------
+# =============================
+# ▶️ RUN
+# =============================
+
 if __name__ == "__main__":
-    demo.launch(debug=True)
+    demo.launch()

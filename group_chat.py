@@ -1,61 +1,42 @@
 from autogen import GroupChat, GroupChatManager, UserProxyAgent
 from agents.classifier_agent import get_classifier_agent
 from agents.knowledge_base_agent import get_knowledge_base_agent
-from agents.notification_agnet import get_notification_agent
-
-# from agents.notification_agent import get_notification_agent
-from tools.send_email import escalate_ticket_with_email
+from agents.notification_agent import get_notification_agent
 from utility.llm_config import llm_config
 
-# Termination condition
+
 def is_termination_msg(message):
-    return isinstance(message, dict) and message.get("content", "").strip().upper() == "TERMINATE"
+    return (
+        isinstance(message, dict)
+        and message.get("content", "").strip().endswith("TERMINATE")
+    )
 
-
-# Create agents
 classifier = get_classifier_agent()
 kb_agent = get_knowledge_base_agent()
 notification_agent = get_notification_agent()
 
-# Bind this manually to the agent
-notification_agent.generate_reply = lambda messages, sender: escalate_ticket_with_email(
-    issue=messages[0]["content"]
-)
 
-
-# Create user agent
 user = UserProxyAgent(
     name="User",
-    human_input_mode="TERMINATE",
+    human_input_mode="NEVER",
     code_execution_config=False,
     is_termination_msg=is_termination_msg,
+    max_consecutive_auto_reply=10,  # 🔥 important
 )
 
-'''
-In AutoGen, GroupChat maintains the full message history between agents. 
-The messages=[] parameter initializes that history.
-'''
 
-# Create group chat with all agents
 groupchat = GroupChat(
-    agents=[user, classifier, kb_agent],  # , notifier],
+    agents=[user, classifier, kb_agent, notification_agent],
     messages=[],
-    speaker_selection_method="Auto",
-    allow_repeat_speaker=False,
-    max_round=6
+    speaker_selection_method="round_robin",  # 🔥 KEY FIX
+    allow_repeat_speaker=True,
+    max_round=10
 )
 
-# Create group chat manager
+
 manager = GroupChatManager(
     groupchat=groupchat,
     llm_config=llm_config,
-    is_termination_msg=is_termination_msg
+    is_termination_msg=is_termination_msg,
+    max_consecutive_auto_reply=10   # 🔥 ADD THIS
 )
-
-
-if __name__=="__main__":
-    # Trigger conversation
-    user.initiate_chat(
-        recipient=manager,
-        message="Please resolve this issue: Outlook crashes every time I open it."
-    )
