@@ -25,7 +25,6 @@ Licensed under the MIT License.
 * 🎨 Migrated UI from **Streamlit → Gradio**
 * ⚡ Switched dependency management from **pip → uv**
 * 🧠 Implemented **Hybrid AutoGen + Deterministic RAG architecture**
-* 📧 Added **email escalation with ticket ID generation**
 * 📴 Enabled **fully local AI pipeline (except SMTP email)**
 
 ---
