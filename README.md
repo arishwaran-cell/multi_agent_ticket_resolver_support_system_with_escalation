@@ -177,8 +177,8 @@ Email Notification
 
 ## 🔧 Customization
 
-* Update knowledge base → [`data/knowledge_base.json`](https://github.com/arishwaran-cell/multi_agent_ticket_resolver_support_system_with_escalation/blob/main/data/knowledge_base.js)
-* Modify prompts → [`utility/prompt.py`](https://github.com/arishwaran-cell/multi_agent_ticket_resolver_support_system_with_escalation/blob/main/utility/prompt.py)
+* Update knowledge base → [`data/knowledge_base.json`](data/knowledge_base.json)
+* Modify prompts → [`utility/prompt.py`](utility/prompt.py)
 * Change model → `.env`
 
 ---
