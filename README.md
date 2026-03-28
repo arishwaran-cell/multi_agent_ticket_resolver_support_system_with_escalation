@@ -226,7 +226,7 @@ TKT-20260329-A1B2C3
 * Modify knowledge base → [`data/knowledge_base.json`](data/knowledge_base.json)
 * Change LLM model → `.env`
 * Update prompts → [`utility/prompt.py`](utility/prompt.py)
-* Adjust retrieval logic → [`knowledge_base_tool.py`](`tools/knowledge_base_tool.py`)
+* Adjust retrieval logic → [`knowledge_base_tool.py`](tools/knowledge_base_tool.py)
 
 ---
 
