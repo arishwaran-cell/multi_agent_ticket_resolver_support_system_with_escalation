@@ -10,7 +10,7 @@ AI Agents Assist is an intelligent IT ticket resolution system powered by **loca
 
 This project is based on and inspired by the open-source repository:
 
-* Intelligent-It-Ticket-Resolver-Multiagent-Project by Sandesh Hase
+* [Intelligent-It-Ticket-Resolver-Multiagent-Project](https://github.com/Sandesh-hase/Intelligent-It-Ticket-Resolver-Multiagent-Project) by Sandesh Hase
 
 Licensed under the MIT License.
 
@@ -177,8 +177,8 @@ Email Notification
 
 ## 🔧 Customization
 
-* Update knowledge base → `data/knowledge_base.json`
-* Modify prompts → `utility/prompt.py`
+* Update knowledge base → [`data/knowledge_base.json`](https://github.com/arishwaran-cell/multi_agent_ticket_resolver_support_system_with_escalation/blob/main/data/knowledge_base.js)
+* Modify prompts → [`utility/prompt.py`](https://github.com/arishwaran-cell/multi_agent_ticket_resolver_support_system_with_escalation/blob/main/utility/prompt.py)
 * Change model → `.env`
 
 ---
@@ -188,7 +188,7 @@ Email Notification
 This project is licensed under the MIT License.
 
 It includes modifications based on prior MIT-licensed work.
-See the `LICENSE` file for full details.
+See the [`LICENSE`](https://github.com/arishwaran-cell/multi_agent_ticket_resolver_support_system_with_escalation/blob/main/README.md) file for full details.
 
 ---
 
