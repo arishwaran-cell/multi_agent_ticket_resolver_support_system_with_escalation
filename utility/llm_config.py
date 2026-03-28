@@ -8,12 +8,12 @@ llm_config={
             "temperature": 0,
             "config_list": [
                 {
-                    "model": "llama3:8b",  # This should match your deployment name
-                    "base_url": "http://localhost:11434/v1",
+                    "model": os.getenv("OLLAMA_MODEL"),  # This should match your deployment name
+                    "base_url": os.getenv("OLLAMA_BASE_URL"),
                     "api_type": "openai",
-                    "api_key": "NULL"
+                    "api_key": "ollama"
                 }
-                ]
+            ]
         }
 
 
