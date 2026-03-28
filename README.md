@@ -188,7 +188,7 @@ Email Notification
 This project is licensed under the MIT License.
 
 It includes modifications based on prior MIT-licensed work.
-See the [`LICENSE`](https://github.com/arishwaran-cell/multi_agent_ticket_resolver_support_system_with_escalation/blob/main/README.md) file for full details.
+See the [`LICENSE`](LICENSE) file for full details.
 
 ---
 
