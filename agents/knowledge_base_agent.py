@@ -9,7 +9,7 @@ def get_knowledge_base_agent():
         name="KnowledgeBaseAgent",
         system_message=(
             "You are an IT support assistant that retrieves solutions to user issues. "
-            "Always call the 'search_similar_solution' tool with the query to get a matching solution. "
+            ""Always call the 'search_similar_solution' tool with the user's query and category. Then summarize the best solution clearly and end with TERMINATE." "
             "After calling, summarize the top solution and respond with TERMINATE."
          
         ),
@@ -20,9 +20,9 @@ def get_knowledge_base_agent():
     # Register tool with LLM and executor
     # 1. LLm knows when to call the tool
     knowledge_agent.register_for_llm(
-        name="search_similar_solution",
-        description="Searches for top IT solutions from a knowledge base using a vector similarity search. Accepts query and top_k."
-    )(search_similar_solution)
+    name="search_similar_solution",
+    description="Search IT solutions using semantic similarity. Inputs: query (str), category (optional str). Returns best matching solutions."
+)(search_similar_solution)
 
     # 2. Executed the tool
     knowledge_agent.register_for_execution(
